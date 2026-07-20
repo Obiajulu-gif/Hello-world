@@ -216,7 +216,18 @@ export function AdvancedSearch({ onSearch, isPending = false }) {
                         <DropdownMenuSeparator />
                         {savedSearches.map((saved) => (
                           <DropdownMenuItem key={saved.id} className="flex items-center justify-between group">
-                            <span className="flex-1 font-medium truncate cursor-pointer" onClick={() => loadSavedSearch(saved)}>
+                            <span 
+                              className="flex-1 font-medium truncate cursor-pointer" 
+                              onClick={() => loadSavedSearch(saved)}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  loadSavedSearch(saved)
+                                }
+                              }}
+                            >
                               {saved.name}
                             </span>
                             <Button
