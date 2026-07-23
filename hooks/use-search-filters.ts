@@ -28,8 +28,8 @@ function deserializeSavedSearches(value: string): SavedSearch[] {
       ...saved.filters,
       dateRange: saved.filters.dateRange
         ? {
-            from: new Date(saved.filters.dateRange.from),
-            to: new Date(saved.filters.dateRange.to),
+            from: new Date(String(saved.filters.dateRange.from)),
+            to: new Date(String(saved.filters.dateRange.to)),
           }
         : undefined,
     },
