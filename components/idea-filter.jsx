@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, RotateCcw } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,15 +9,47 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { IDEA_CATEGORIES, IDEA_TAGS } from "@/lib/ideas-data"
+import { useSearchFilters } from "@/hooks/use-search-filters"
 
-export function IdeasFilter() {
+export function IdeasFilter({ onApply }) {
   const [openCategories, setOpenCategories] = useState(true)
   const [openTags, setOpenTags] = useState(true)
+  const { filters, updateFilters, clearFilters } = useSearchFilters()
+
+  const toggleTag = (tag, checked) => {
+    const current = filters.tags ?? []
+    const tags = checked
+      ? Array.from(new Set([...current, tag]))
+      : current.filter((item) => item !== tag)
+    updateFilters({ tags })
+  }
+
+  const setContentType = (contentType) => {
+    updateFilters({ contentType: contentType === "all" ? undefined : contentType })
+  }
+
+  const hasFilters = Boolean(
+    filters.category || filters.tags?.length || filters.contentType,
+  )
 
   return (
     <Card className="sticky top-6">
-      <CardHeader>
+      <CardHeader className="flex-row items-center justify-between space-y-0">
         <CardTitle>Filters</CardTitle>
+        {hasFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              clearFilters()
+              onApply?.()
+            }}
+          >
+            <RotateCcw className="mr-1 h-3.5 w-3.5" />
+            Clear
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         <Collapsible open={openCategories} onOpenChange={setOpenCategories}>
@@ -27,35 +59,22 @@ export function IdeasFilter() {
               <ChevronDown className={`h-4 w-4 transition-transform ${openCategories ? "rotate-180" : ""}`} />
             </Button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2 pb-4 space-y-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox id="bitcoin" />
-              <Label htmlFor="bitcoin">Bitcoin</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="stellar" />
-              <Label htmlFor="stellar">Stellar</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="ethereum" />
-              <Label htmlFor="ethereum">Ethereum</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="altcoins" />
-              <Label htmlFor="altcoins">Altcoins</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="defi" />
-              <Label htmlFor="defi">DeFi</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="nft" />
-              <Label htmlFor="nft">NFTs</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="layer2" />
-              <Label htmlFor="layer2">Layer 2</Label>
-            </div>
+          <CollapsibleContent className="space-y-2 pb-4 pt-2">
+            {IDEA_CATEGORIES.map((category) => {
+              const id = `category-${category.toLowerCase().replace(/\s+/g, "-")}`
+              return (
+                <div key={category} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={id}
+                    checked={filters.category === category}
+                    onCheckedChange={(checked) =>
+                      updateFilters({ category: checked ? category : undefined })
+                    }
+                  />
+                  <Label htmlFor={id}>{category}</Label>
+                </div>
+              )
+            })}
           </CollapsibleContent>
         </Collapsible>
 
@@ -68,27 +87,20 @@ export function IdeasFilter() {
               <ChevronDown className={`h-4 w-4 transition-transform ${openTags ? "rotate-180" : ""}`} />
             </Button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2 pb-4 space-y-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox id="technical-analysis" />
-              <Label htmlFor="technical-analysis">Technical Analysis</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="fundamental-analysis" />
-              <Label htmlFor="fundamental-analysis">Fundamental Analysis</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="trading" />
-              <Label htmlFor="trading">Trading</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="investment" />
-              <Label htmlFor="investment">Investment</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="news" />
-              <Label htmlFor="news">News</Label>
-            </div>
+          <CollapsibleContent className="space-y-2 pb-4 pt-2">
+            {IDEA_TAGS.map((tag) => {
+              const id = `tag-${tag.toLowerCase().replace(/\s+/g, "-")}`
+              return (
+                <div key={tag} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={id}
+                    checked={filters.tags?.includes(tag) ?? false}
+                    onCheckedChange={(checked) => toggleTag(tag, Boolean(checked))}
+                  />
+                  <Label htmlFor={id}>{tag}</Label>
+                </div>
+              )
+            })}
           </CollapsibleContent>
         </Collapsible>
 
@@ -96,25 +108,30 @@ export function IdeasFilter() {
 
         <div className="space-y-2">
           <h3 className="font-semibold">Content Type</h3>
-          <div className="flex items-center space-x-2">
-            <Checkbox id="all-content" />
-            <Label htmlFor="all-content">All Content</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox id="premium-only" />
-            <Label htmlFor="premium-only">Premium Only</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox id="free-only" />
-            <Label htmlFor="free-only">Free Only</Label>
-          </div>
+          {[
+            ["all", "All Content"],
+            ["premium", "Premium Only"],
+            ["free", "Free Only"],
+          ].map(([value, label]) => {
+            const selected = (filters.contentType ?? "all") === value
+            return (
+              <div key={value} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`content-${value}`}
+                  checked={selected}
+                  onCheckedChange={(checked) => checked && setContentType(value)}
+                />
+                <Label htmlFor={`content-${value}`}>{label}</Label>
+              </div>
+            )
+          })}
         </div>
 
         <Separator />
 
-        <div className="pt-2">
-          <Button className="w-full">Apply Filters</Button>
-        </div>
+        <Button className="w-full" onClick={() => onApply?.()}>
+          Apply Filters
+        </Button>
       </CardContent>
     </Card>
   )
