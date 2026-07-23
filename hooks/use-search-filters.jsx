@@ -1,3 +1,3 @@
 "use client"
 
-export { useSearchFilters } from "./use-search-filters"
+export { useSearchFilters } from "./search-filter-state"
